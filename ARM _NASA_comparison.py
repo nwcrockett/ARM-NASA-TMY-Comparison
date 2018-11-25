@@ -4,12 +4,16 @@ import sys
 import Comparison_graphs as cg
 
 
-def graph_bined_by_month(df_nasa, df_arm):
+def graph_binned_by_month(df_nasa, df_arm, df_tmy):
     """
+    Graphs each of the data sets by month over a yearly time span.
+    At this time I need to go back through and break apart a lot of these functions into separate functions.
+    Will do so as soon as I have time.
 
-    :param df_nasa:
-    :param df_arm:
-    :return:
+    :param df_nasa: nasa POWER dataset
+    :param df_arm: Arm dataset
+    :param df_tmy: tmy dataset
+    :return: returns nothing. Will output several graphs
     """
     unique_years_arm = np.unique(df_arm.date_time.dt.year)
     unique_years_nasa = np.unique(df_nasa["YEAR"].values)
@@ -18,12 +22,18 @@ def graph_bined_by_month(df_nasa, df_arm):
                   "11": 'November', "12": 'December'}
 
     pd_months = []
-    difference_months = []
+    difference_arm_nasa = []
+    difference_tmy_nasa = []
+    difference_tmy_arm = []
     month_names = []
     pd_y_min = 0
     pd_y_max = 0
-    d_y_min = 0
-    d_y_max = 0
+    d_y_min_arm_nasa = 0
+    d_y_max_arm_nasa = 0
+    d_y_min_tmy_nasa = 0
+    d_y_max_tmy_nasa = 0
+    d_y_min_tmy_arm = 0
+    d_y_max_tmy_arm = 0
 
     if not (bool(set(unique_years_arm).intersection(unique_years_nasa))):
         print(unique_years_arm)
@@ -41,6 +51,7 @@ def graph_bined_by_month(df_nasa, df_arm):
 
         df_nasa_month = df_nasa.loc[df_nasa["MO"] == int(m)]
         df_arm_month = df_arm.loc[df_arm.date_time.dt.month == int(m)]
+        df_tmy_month = df_tmy.loc[df_tmy['month'] == m]
 
         unique_years_arm = np.unique(df_arm_month.date_time.dt.year.values)
         year_num = unique_years_arm.astype(np.int)
@@ -49,10 +60,13 @@ def graph_bined_by_month(df_nasa, df_arm):
         arm_sum_by_year = df_arm_month.groupby(df_arm_month.date_time.dt.year).sum() / 1000
         arm_sum_by_year = arm_sum_by_year.transpose()
         arm_sum_by_year = arm_sum_by_year.values[0]
+        tmy_value = df_tmy_month['GHI (W/m^2)'].sum() / 1000
+
         cg.all_year_overview_single_month(
             year_num,
             arm_sum_by_year,
             nasa_sum_by_year,
+            tmy_value,
             "Yearly overview of " + mn)
 
         arm_sums_by_year_values = np.array(arm_sum_by_year)
@@ -69,38 +83,68 @@ def graph_bined_by_month(df_nasa, df_arm):
         if dif_max > pd_y_max:
             pd_y_max = dif_max
 
+        # Difference One
         difference = arm_sums_by_year_values - nasa_sums_by_year_values
-        difference_months.append(difference)
+        difference_arm_nasa.append(difference)
 
         dif_min = np.amin(difference)
         dif_max = np.amax(difference)
 
-        if dif_min < d_y_min:
-            d_y_min = dif_min
-        if dif_max > d_y_max:
-            d_y_max = dif_max
+        if dif_min < d_y_min_arm_nasa:
+            d_y_min_arm_nasa = dif_min
+        if dif_max > d_y_max_arm_nasa:
+            d_y_max_arm_nasa = dif_max
 
-        print()
-        print("Percent difference average without absolute value " + mn + " " + str(np.average(percent_difference)))
-        print()
+        # Difference Two
+        difference = nasa_sums_by_year_values - tmy_value
+        difference_tmy_nasa.append(difference)
+
+        dif_min = np.amin(difference)
+        dif_max = np.amax(difference)
+
+        if dif_min < d_y_min_tmy_nasa:
+            d_y_min_tmy_nasa = dif_min
+        if dif_max > d_y_max_tmy_nasa:
+            d_y_max_tmy_nasa = dif_max
+
+        # Difference Three
+        difference = arm_sums_by_year_values - tmy_value
+        difference_tmy_arm.append(difference)
+
+        dif_min = np.amin(difference)
+        dif_max = np.amax(difference)
+
+        if dif_min < d_y_min_tmy_arm:
+            d_y_min_tmy_arm = dif_min
+        if dif_max > d_y_max_tmy_arm:
+            d_y_max_tmy_arm = dif_max
 
         cg.percent_difference(
             year_num,
             percent_difference,
             "% difference between Wonder and NASA POWER for " + mn,
             "year",
-            "bined_by_months/percent_difference/")
+            "binned_by_months/percent_difference/")
 
-    print("YEARly overview")
-    cg.all_month_over_years(d_y_min, d_y_max, difference_months,
-                            month_names, year_num, "difference 12 months")
+    print("Yearly overview")
+    print("difference 12 months arm - nasa")
+    cg.all_month_over_years(d_y_min_arm_nasa, d_y_max_arm_nasa, difference_arm_nasa,
+                            month_names, unique_years_arm, "difference 12 months arm - nasa")
 
+    print("difference 12 months nasa - tmy")
+    cg.all_month_over_years(d_y_min_tmy_nasa, d_y_max_tmy_nasa, difference_tmy_nasa,
+                            month_names, unique_years_arm, "difference 12 months nasa - tmy")
+
+    print("difference 12 months arm -tmy")
+    cg.all_month_over_years(d_y_min_tmy_arm, d_y_max_tmy_arm, difference_tmy_arm,
+                            month_names, unique_years_arm, "difference 12 months arm -tmy")
+
+    print("percent difference 12 months")
     cg.all_month_over_years(pd_y_min, pd_y_max, pd_months,
-                            month_names, year_num, "percent difference 12 months")
+                            month_names, unique_years_arm, "percent difference 12 months")
 
 
-
-def graph_by_year(df_arm, df_nasa):
+def graph_by_year(df_arm, df_nasa, df_tmy):
     unique_years_arm = np.unique(df_arm.date_time.dt.year.values)
     unique_years_nasa = np.unique(df_nasa["YEAR"].values)
 
@@ -114,12 +158,14 @@ def graph_by_year(df_arm, df_nasa):
 
     arm_yearly_sum = df_arm.groupby(df_arm.date_time.dt.year)['down_short_hemisp'].sum() / 1000
     nasa_yearly_sum = df_nasa.groupby("YEAR")["ALLSKY_SFC_SW_DWN"].sum()
+    tmy_value = df_tmy['GHI (W/m^2)'].sum() / 1000
     year_num = unique_years_arm.astype(np.int)
 
     cg.yearly_overview(
         year_num,
         arm_yearly_sum.values,
         nasa_yearly_sum.values,
+        tmy_value,
         "Yearly overview")
 
     arm_yearly_sum = np.array(arm_yearly_sum)
@@ -132,12 +178,15 @@ def graph_by_year(df_arm, df_nasa):
         percent_difference,
         "Percentage difference Graph between Wonder and NASA POWER",
         "Month of the year",
-        "Graphs_chosen_nasa")
+        "graphed_by_year")
 
     for yc, yn in zip(unique_years_arm, unique_years_nasa):
         df_arm_month = df_arm.loc[df_arm.date_time.dt.year == yc]
         arm_months = np.unique(df_arm_month.date_time.dt.month)
         months_nasa = np.unique(df_nasa.loc[df_nasa["YEAR"] == yc, "MO"])
+
+        if yc == 2011 or yc == 2018:
+            continue
 
         if not (bool(set(arm_months).intersection(months_nasa))):
             print(arm_months)
@@ -150,17 +199,20 @@ def graph_by_year(df_arm, df_nasa):
         df_year_nasa = df_nasa[(df_nasa["YEAR"] == yc)]
         arm_year_sums = df_arm_month.groupby(df_arm_month.date_time.dt.month)['down_short_hemisp'].sum() / 1000
         nasa_monthly_sums = df_year_nasa.groupby("MO")["ALLSKY_SFC_SW_DWN"].sum()
+        tmy_monthly_sums = df_tmy.groupby("month")['GHI (W/m^2)'].sum()
 
         print(str(yc))
         print(arm_months)
         print(arm_year_sums.values)
         print(nasa_monthly_sums.values)
+        print(tmy_monthly_sums.values)
         print()
 
-        cg.year_month_sums(
+        cg.graph_of_one_year(
             arm_months,
             arm_year_sums.values,
             nasa_monthly_sums.values,
+            tmy_monthly_sums.values,
             str(yc))
 
         arm_monthly_sums = np.array(arm_year_sums.values)
@@ -172,10 +224,10 @@ def graph_by_year(df_arm, df_nasa):
             arm_months,
             percent_difference,
             str(yc) + " Percentage difference Graph between Wonder and NASA POWER",
-            "Month of the year", "graphs_by_year/percent_difference/")
+            "Month of the year", "graphed_by_year/percent_difference/")
 
 
-def arm_data_setup(df_arm):
+def arm_data_setup_barrow(df_arm):
     """
     I have 4 data points for the date 2012-06-15. I cannot drop them since it is a time frame with 24 hour day light.
     first blank spot is at 2012-06-15 00:00:00 and 2012-06-15 00:30:00. The two nearby data points are
@@ -205,11 +257,13 @@ def arm_data_setup(df_arm):
     return df_arm_00
 
 
-
 if __name__ == "__main__":
     df_arm = pd.read_csv("processed_arm_data.csv")
-    df_arm = arm_data_setup(df_arm)
+    df_arm = arm_data_setup_barrow(df_arm)
     df_nasa = pd.read_csv("barrow_nasa_power.csv", header=10)
     df_nasa.loc[df_nasa["ALLSKY_SFC_SW_DWN"] < 0, "ALLSKY_SFC_SW_DWN"] = 0
-    # graph_bined_by_month(df_nasa, df_arm)
-    graph_by_year(df_arm, df_nasa)
+    df_tmy = pd.read_csv("Barrow tmy3.CSV", header=1)
+    temp = df_tmy['Date (MM/DD/YYYY)'].str.split("/")
+    df_tmy[["month", "day", "year"]] = pd.DataFrame(temp.values.tolist(), index=df_tmy.index)
+    graph_binned_by_month(df_nasa, df_arm, df_tmy)
+    graph_by_year(df_arm, df_nasa, df_tmy)

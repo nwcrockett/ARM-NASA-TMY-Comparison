@@ -5,14 +5,7 @@ import time
 
 
 '''
-The job of this script is to get the GHI values from nasa for a given latitude, longitude
-and time frame
 
-The main intention for this script is to allow a real time comparision of the nasa power data
-set to a weather station that we have setup
-
-This will usually mean that the value that is to be entered for the end of the time frame will 
-be the current year-month-day 
 '''
 
 

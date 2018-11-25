@@ -18,10 +18,11 @@ def join_arm_data_files_together(directory_list):
     df_arm.to_csv("processed_arm_data.csv")
 
 
-
 if __name__ == "__main__":
 
     os.chdir("/media/nelson/LinuxExt/ARM data for Barrow/207121_extractedData/ascii-csv")
     direct = os.listdir()
     direct.sort()
     join_arm_data_files_together(direct)
+
+
