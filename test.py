@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 import sys
-import Comparison_graphs as cg
+import Subplot_Comparison_Graphs as cg
+import matplotlib.pyplot as plt
 
 
 def graph_binned_by_month(df_nasa, df_arm, df_tmy):
@@ -43,6 +44,8 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy):
         print("I do not have a year matchup")
         sys.exit(0)
 
+    fig = plt.figure(figsize=(20, 20), facecolor='w')
+    count = 1
     for m, mn in month_dict.items():
         if m == "01" or m == "12":
             print("JAN or DEC skipping")
@@ -62,12 +65,14 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy):
         arm_sum_by_year = arm_sum_by_year.values[0]
         tmy_value = df_tmy_month['GHI (W/m^2)'].sum() / 1000
 
+        ax = plt.subplot(4, 4, count)
         cg.all_year_overview_single_month(
             year_num,
             arm_sum_by_year,
             nasa_sum_by_year,
             tmy_value,
             "Yearly overview of " + mn)
+        count += 1
 
         arm_sums_by_year_values = np.array(arm_sum_by_year)
         nasa_sums_by_year_values = np.array(nasa_sum_by_year)
@@ -119,12 +124,9 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy):
         if dif_max > d_y_max_tmy_arm:
             d_y_max_tmy_arm = dif_max
 
-        cg.percent_difference(
-            year_num,
-            percent_difference,
-            "% difference between Wonder and NASA POWER for " + mn,
-            "year",
-            "binned_by_months/percent_difference/")
+    plt.tight_layout()
+    plt.savefig("binned_by_months/subplot.png")
+    plt.show()
 
     print("Yearly overview")
     print("difference 12 months arm - nasa")
@@ -180,6 +182,8 @@ def graph_by_year(df_arm, df_nasa, df_tmy):
         "Month of the year",
         "graphed_by_year")
 
+    fig = plt.figure(figsize=(20, 20), facecolor='w')
+    count = 1
     for yc, yn in zip(unique_years_arm, unique_years_nasa):
         df_arm_month = df_arm.loc[df_arm.date_time.dt.year == yc]
         arm_months = np.unique(df_arm_month.date_time.dt.month)
@@ -201,30 +205,19 @@ def graph_by_year(df_arm, df_nasa, df_tmy):
         nasa_monthly_sums = df_year_nasa.groupby("MO")["ALLSKY_SFC_SW_DWN"].sum()
         tmy_monthly_sums = df_tmy.groupby("month")['GHI (W/m^2)'].sum() / 1000
 
-        print(str(yc))
-        print(arm_months)
-        print(arm_year_sums.values)
-        print(nasa_monthly_sums.values)
-        print(tmy_monthly_sums.values)
-        print()
-
+        ax = plt.subplot(4, 4, count)
         cg.graph_of_one_year(
             arm_months,
             arm_year_sums.values,
             nasa_monthly_sums.values,
             tmy_monthly_sums.values,
             str(yc))
+        count += 1
 
-        arm_monthly_sums = np.array(arm_year_sums.values)
-        nasa_monthly_sums = np.array(nasa_monthly_sums)
-        percent_difference = (np.abs(arm_monthly_sums - nasa_monthly_sums) /
-                              ((arm_monthly_sums + nasa_monthly_sums) / 2)) * 100
+    plt.tight_layout()
+    plt.savefig("graphed_by_year/subplot.png")
+    plt.show()
 
-        cg.percent_difference(
-            arm_months,
-            percent_difference,
-            str(yc) + " Percentage difference Graph between Wonder and NASA POWER",
-            "Month of the year", "graphed_by_year/percent_difference/")
 
 
 def arm_data_setup_barrow(df_arm):
