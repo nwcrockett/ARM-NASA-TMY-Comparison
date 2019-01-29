@@ -2,9 +2,10 @@ import pandas as pd
 import numpy as np
 import sys
 import Comparison_graphs as cg
+import matplotlib.pyplot as plt
 
 
-def graph_binned_by_month(df_nasa, df_arm, df_tmy):
+def graph_binned_by_month(df_nasa, df_arm, df_tmy, overview=False):
     """
     Graphs each of the data sets by month over a yearly time span.
     At this time I need to go back through and break apart a lot of these functions into separate functions.
@@ -35,6 +36,18 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy):
     d_y_min_tmy_arm = 0
     d_y_max_tmy_arm = 0
 
+    if overview:
+        fig, ax = plt.subplots(3, 3, sharex=True, sharey=True)
+        fig.set_size_inches(14, 14)
+        fig.suptitle("Sum of GHI per year for a given month", fontsize="large")
+        row = 0
+        column = 0
+    else:
+        fig, ax = plt.subplots(9, sharex=True, sharey=True)
+        fig.set_size_inches(14, 10)
+        fig.suptitle("Differences between data sets", fontsize="large")
+        row = 0
+
     if not (bool(set(unique_years_arm).intersection(unique_years_nasa))):
         print(unique_years_arm)
         print(unique_years_nasa)
@@ -62,18 +75,55 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy):
         arm_sum_by_year = arm_sum_by_year.values[0]
         tmy_value = df_tmy_month['GHI (W/m^2)'].sum() / 1000
 
+        '''
         cg.all_year_overview_single_month(
             year_num,
             arm_sum_by_year,
             nasa_sum_by_year,
             tmy_value,
             "Yearly overview of " + mn)
+        '''
 
         arm_sums_by_year_values = np.array(arm_sum_by_year)
         nasa_sums_by_year_values = np.array(nasa_sum_by_year)
         percent_difference = ((arm_sums_by_year_values - nasa_sums_by_year_values) /
                               ((arm_sums_by_year_values + nasa_sums_by_year_values) / 2)) * 100
         pd_months.append(percent_difference)
+
+        if overview:
+            if row == 3:
+                continue
+        else:
+            if row == 9:
+                continue
+
+        if overview:
+            bar_width = 0.35
+            ax[row, column].bar(year_num, arm_sum_by_year, bar_width, label="ARM radiation")
+            ax[row, column].bar(year_num - bar_width, nasa_sum_by_year, bar_width, label="NASA POWER radiation")
+            if row == 1 and column == 0:
+                ax[row, column].set_ylabel("kWh/m^2/month")
+            ax[row, column].axhline(y=tmy_value, label="tmy value", color="r")
+            ax[row, column].set_title("Overview of " + mn)
+            ax[row, column].set_xticklabels(year_num, rotation=45)
+        else:
+            nasa_tmy = nasa_sums_by_year_values - tmy_value
+            arm_tmy = arm_sums_by_year_values - tmy_value
+            nasa_arm = nasa_sums_by_year_values - arm_sums_by_year_values
+            ax[row].plot(nasa_tmy, label="NASA POWER - TMY")
+            ax[row].plot(arm_tmy, label="ARM - TMY")
+            ax[row].plot(nasa_arm, label="NASA POWER - ARM")
+            ax[row].axhline(y=0, label="0 baseline", color="black", linestyle="dashed")
+            ax[row].set_title("Overview of " + mn)
+            ax[row].set_xticklabels(year_num, rotation=45)
+
+        if overview:
+            column += 1
+            if column == 3:
+                row += 1
+                column = 0
+        else:
+            row += 1
 
         dif_min = np.amin(percent_difference)
         dif_max = np.amax(percent_difference)
@@ -119,12 +169,26 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy):
         if dif_max > d_y_max_tmy_arm:
             d_y_max_tmy_arm = dif_max
 
+        '''
         cg.percent_difference(
             year_num,
             percent_difference,
             "% difference between Wonder and NASA POWER for " + mn,
             "year",
             "graphs/binned_by_months/percent_difference/")
+        '''
+
+    if overview:
+        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+        plt.legend()
+        plt.savefig("/home/nelson/PycharmProjects/ARM_NASA_TMY Comparison/graphs/binned_by_months/subplot_of_months.png")
+        plt.show()
+    else:
+        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+        plt.legend()
+        plt.savefig("/home/nelson/PycharmProjects/ARM_NASA_TMY Comparison/graphs/"
+                    "binned_by_months/subplot_of_months_difference.png")
+        plt.show()
 
     print("Yearly overview")
     print("difference 12 months arm - nasa")

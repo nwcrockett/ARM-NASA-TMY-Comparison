@@ -66,3 +66,4 @@ def graph_of_one_year(months, arm_values, nasa_values, tmy_values, title):
     plt.title(title)
 
 
+
