@@ -124,7 +124,7 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy):
             percent_difference,
             "% difference between Wonder and NASA POWER for " + mn,
             "year",
-            "binned_by_months/percent_difference/")
+            "graphs/binned_by_months/percent_difference/")
 
     print("Yearly overview")
     print("difference 12 months arm - nasa")
@@ -178,7 +178,7 @@ def graph_by_year(df_arm, df_nasa, df_tmy):
         percent_difference,
         "Percentage difference Graph between Wonder and NASA POWER",
         "Month of the year",
-        "graphed_by_year")
+        "graphs/graphed_by_year")
 
     for yc, yn in zip(unique_years_arm, unique_years_nasa):
         df_arm_month = df_arm.loc[df_arm.date_time.dt.year == yc]
@@ -224,7 +224,7 @@ def graph_by_year(df_arm, df_nasa, df_tmy):
             arm_months,
             percent_difference,
             str(yc) + " Percentage difference Graph between Wonder and NASA POWER",
-            "Month of the year", "graphed_by_year/percent_difference/")
+            "Month of the year", "graphs/graphed_by_year/percent_difference/")
 
 
 def arm_data_setup_barrow(df_arm):

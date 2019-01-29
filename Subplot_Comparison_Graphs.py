@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 def all_year_overview_single_month(year, arm_values, nasa_values, tmy_value, title):
     bar_width = 0.35
-    plt.bar(year, arm_values, bar_width, label="raws radiation")
+    plt.bar(year, arm_values, bar_width, label="ARM radiation")
     plt.bar(year - bar_width, nasa_values, bar_width, label="NASA POWER radiation")
     plt.ylim(0, 250)
     plt.axhline(y=tmy_value, label="tmy value = %.2f" % tmy_value, color="r")
@@ -35,15 +35,14 @@ def all_month_over_years(y_min, y_max, differences_by_month, month_names, years,
     for dif, name, y in zip(differences_by_month, month_names, years):
         plt.plot(years, dif, label=name)
     plt.legend()
-    plt.savefig("binned_by_months/" + title)
+    plt.savefig("graphs/binned_by_months/" + title)
     plt.show()
-
 
 
 def yearly_overview(year, raws_values, nasa_values, tmy_value, title):
     bar_width = 0.35
     ax = plt.axes()
-    ax.bar(year, raws_values, bar_width, label="raws station radiation")
+    ax.bar(year, raws_values, bar_width, label="ARM radiation")
     ax.bar(year - bar_width, nasa_values, bar_width, label="NASA POWER radiation")
     ax.axhline(y=tmy_value, label="tmy value = %.2f" % tmy_value, color="r")
     ax.xaxis.set_major_locator(plt.MaxNLocator(8))
@@ -52,7 +51,7 @@ def yearly_overview(year, raws_values, nasa_values, tmy_value, title):
     ax.set_ylabel("kWh/m2/year")
     plt.legend()
     plt.title(title)
-    plt.savefig("graphed_by_year/" + title)
+    plt.savefig("graphs/graphed_by_year/" + title)
     plt.show()
 
 
