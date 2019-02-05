@@ -23,9 +23,18 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy, overview=False):
                   "11": 'November', "12": 'December'}
 
     pd_months = []
-    difference_arm_nasa = []
+
+
+    difference_nasa_arm = []
     difference_tmy_nasa = []
     difference_tmy_arm = []
+    difference_nasa_arm_average = []
+    difference_tmy_nasa_average = []
+    difference_tmy_arm_average = []
+    difference_nasa_arm_std = []
+    difference_tmy_nasa_std = []
+    difference_tmy_arm_std = []
+
     month_names = []
     pd_y_min = 0
     pd_y_max = 0
@@ -44,7 +53,7 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy, overview=False):
         column = 0
     else:
         fig, ax = plt.subplots(9, sharex=True, sharey=True)
-        fig.set_size_inches(14, 10)
+        fig.set_size_inches(14, 25)
         fig.suptitle("Differences between data sets", fontsize="large")
         row = 0
 
@@ -57,7 +66,7 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy, overview=False):
         sys.exit(0)
 
     for m, mn in month_dict.items():
-        if m == "01" or m == "12":
+        if m == "01" or m == "12" or m == "11":
             print("JAN or DEC skipping")
             continue
         month_names.append(mn)
@@ -104,6 +113,8 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy, overview=False):
             if row == 1 and column == 0:
                 ax[row, column].set_ylabel("kWh/m^2/month")
             ax[row, column].axhline(y=tmy_value, label="tmy value", color="r")
+            if row == 0 and column == 0:
+                ax[row, column].legend(prop={'size': 18}, loc="upper right")
             ax[row, column].set_title("Overview of " + mn)
             ax[row, column].set_xticklabels(year_num, rotation=45)
         else:
@@ -114,6 +125,10 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy, overview=False):
             ax[row].plot(arm_tmy, label="ARM - TMY")
             ax[row].plot(nasa_arm, label="NASA POWER - ARM")
             ax[row].axhline(y=0, label="0 baseline", color="black", linestyle="dashed")
+            if row == 0:
+                ax[row].legend(prop={'size': 12}, loc="upper right")
+            if row == 3:
+                ax[row].set_ylabel("kWh/m^2/month")
             ax[row].set_title("Overview of " + mn)
             ax[row].set_xticklabels(year_num, rotation=45)
 
@@ -134,8 +149,10 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy, overview=False):
             pd_y_max = dif_max
 
         # Difference One
-        difference = arm_sums_by_year_values - nasa_sums_by_year_values
-        difference_arm_nasa.append(difference)
+        difference = nasa_sums_by_year_values - arm_sums_by_year_values
+        difference_nasa_arm.append(difference)
+        difference_nasa_arm_average.append(difference.mean())
+        difference_nasa_arm_std.append(difference.std())
 
         dif_min = np.amin(difference)
         dif_max = np.amax(difference)
@@ -148,6 +165,8 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy, overview=False):
         # Difference Two
         difference = nasa_sums_by_year_values - tmy_value
         difference_tmy_nasa.append(difference)
+        difference_tmy_nasa_average.append(difference.mean())
+        difference_tmy_nasa_std.append(difference.std())
 
         dif_min = np.amin(difference)
         dif_max = np.amax(difference)
@@ -160,6 +179,8 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy, overview=False):
         # Difference Three
         difference = arm_sums_by_year_values - tmy_value
         difference_tmy_arm.append(difference)
+        difference_tmy_arm_average.append(difference.mean())
+        difference_tmy_arm_std.append(difference.std())
 
         dif_min = np.amin(difference)
         dif_max = np.amax(difference)
@@ -177,23 +198,50 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy, overview=False):
             "year",
             "graphs/binned_by_months/percent_difference/")
         '''
+        print(mn)
 
     if overview:
         fig.tight_layout(rect=[0, 0.03, 1, 0.95])
-        plt.legend()
+        # plt.legend()
         plt.savefig("/home/nelson/PycharmProjects/ARM_NASA_TMY Comparison/graphs/binned_by_months/subplot_of_months.png")
         plt.show()
     else:
         fig.tight_layout(rect=[0, 0.03, 1, 0.95])
-        plt.legend()
+        # plt.legend(prop={'size': 12}, loc="upper right")
         plt.savefig("/home/nelson/PycharmProjects/ARM_NASA_TMY Comparison/graphs/"
                     "binned_by_months/subplot_of_months_difference.png")
         plt.show()
 
     print("Yearly overview")
     print("difference 12 months arm - nasa")
-    cg.all_month_over_years(d_y_min_arm_nasa, d_y_max_arm_nasa, difference_arm_nasa,
+    cg.all_month_over_years(d_y_min_arm_nasa, d_y_max_arm_nasa, difference_nasa_arm,
                             month_names, unique_years_arm, "difference 12 months arm - nasa")
+
+    fig, ax = plt.subplots(3, sharex=True, sharey=True)
+    fig.set_size_inches(12, 10)
+
+    print(month_names)
+    print(difference_nasa_arm_average)
+    print(difference_nasa_arm_std)
+    ax[0].errorbar(month_names, difference_nasa_arm_average, difference_nasa_arm_std, barsabove=True)
+    ax[0].axhline(0, linestyle="dashed", color="red")
+    ax[0].set_title("Difference for ARM - NASA POWER")
+    ax[0].set_xticklabels(month_names, rotation=45)
+
+    ax[1].errorbar(month_names, difference_tmy_nasa_average, difference_tmy_nasa_std, barsabove=True)
+    ax[1].axhline(0, linestyle="dashed", color="red")
+    ax[1].set_title("Difference for NASA POWER - TMY3")
+    ax[1].set_xticklabels(month_names, rotation=45)
+
+    ax[2].errorbar(month_names, difference_tmy_arm_average, difference_tmy_arm_std, barsabove=True)
+    ax[2].axhline(0, linestyle="dashed", color="red")
+    ax[2].set_title("Difference for ARM - TMY3")
+    ax[2].set_xticklabels(month_names, rotation=45)
+
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig("/home/nelson/PycharmProjects/ARM_NASA_TMY Comparison/graphs/binned_by_months/errorbar_subplot.png")
+    plt.show()
+
 
     print("difference 12 months nasa - tmy")
     cg.all_month_over_years(d_y_min_tmy_nasa, d_y_max_tmy_nasa, difference_tmy_nasa,
@@ -329,5 +377,5 @@ if __name__ == "__main__":
     df_tmy = pd.read_csv("Barrow tmy3.CSV", header=1)
     temp = df_tmy['Date (MM/DD/YYYY)'].str.split("/")
     df_tmy[["month", "day", "year"]] = pd.DataFrame(temp.values.tolist(), index=df_tmy.index)
-    graph_binned_by_month(df_nasa, df_arm, df_tmy)
+    graph_binned_by_month(df_nasa, df_arm, df_tmy, overview=True)
     graph_by_year(df_arm, df_nasa, df_tmy)
