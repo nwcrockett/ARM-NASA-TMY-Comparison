@@ -225,17 +225,18 @@ def graph_binned_by_month(df_nasa, df_arm, df_tmy, overview=False):
     print(difference_nasa_arm_std)
     ax[0].errorbar(month_names, difference_nasa_arm_average, difference_nasa_arm_std, barsabove=True)
     ax[0].axhline(0, linestyle="dashed", color="red")
-    ax[0].set_title("Difference for ARM - NASA POWER")
+    ax[0].set_title("ARM - NASA POWER")
     ax[0].set_xticklabels(month_names, rotation=45)
 
     ax[1].errorbar(month_names, difference_tmy_nasa_average, difference_tmy_nasa_std, barsabove=True)
     ax[1].axhline(0, linestyle="dashed", color="red")
-    ax[1].set_title("Difference for NASA POWER - TMY3")
+    ax[1].set_ylabel("kWh/m^2/month")
+    ax[1].set_title("NASA POWER - TMY3")
     ax[1].set_xticklabels(month_names, rotation=45)
 
     ax[2].errorbar(month_names, difference_tmy_arm_average, difference_tmy_arm_std, barsabove=True)
     ax[2].axhline(0, linestyle="dashed", color="red")
-    ax[2].set_title("Difference for ARM - TMY3")
+    ax[2].set_title("ARM - TMY3")
     ax[2].set_xticklabels(month_names, rotation=45)
 
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
